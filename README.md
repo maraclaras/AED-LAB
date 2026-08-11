@@ -3,4 +3,4 @@ Atividade revisão e nivelamento em AED-II, abordando recursividade, programaç�
 
 ## Alunos integrantes da equipe
 
-* MAria Clara de Oliveira Silva
+* Maria Clara de Oliveira Silva
