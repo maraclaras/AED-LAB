@@ -1,4 +1,12 @@
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -54,8 +62,8 @@ public class App {
      */
     static Produto[] lerProdutos(String nomeArquivoDados) {
         try {
-            java.nio.file.Path caminho = java.nio.file.Paths.get(nomeArquivoDados);
-            java.util.List<String> linhas = java.nio.file.Files.readAllLines(caminho, java.nio.charset.StandardCharsets.UTF_8);
+            Path caminho = Paths.get(nomeArquivoDados);
+            java.util.List<String> linhas = Files.readAllLines(caminho, StandardCharsets.UTF_8);
 
             if (linhas.isEmpty()) {
                 return new Produto[0];
@@ -127,8 +135,7 @@ public class App {
             return;
         }
 
-        quantosProdutos = (produtosCadastrados == null) ? 0 : produtosCadastrados.length;
-
+        quantosProdutos = (produtosCadastrados == null) ? 0 : quantosProdutos;
         java.util.ArrayList<String> linhas = new java.util.ArrayList<>();
         linhas.add(String.valueOf(quantosProdutos));
 
@@ -141,11 +148,11 @@ public class App {
         }
 
         try {
-            java.nio.file.Path caminho = java.nio.file.Paths.get(nomeArquivo);
-            java.nio.file.Files.write(caminho, linhas, java.nio.charset.StandardCharsets.UTF_8,
-                    java.nio.file.StandardOpenOption.CREATE,
-                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
-                    java.nio.file.StandardOpenOption.WRITE);
+            Path caminho = Paths.get(nomeArquivo);
+            Files.write(caminho, linhas, StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE);
         } catch (Exception e) {
             System.out.println("Erro ao salvar os produtos.");
         }
@@ -153,7 +160,16 @@ public class App {
     
     /** Lista todos os produtos cadastrados, numerados, um por linha */
     static void listarTodosOsProdutos() {
-    	
+        if (produtosCadastrados == null || quantosProdutos == 0) {
+            System.out.println("Nenhum produto cadastrado.");
+            return;
+        }
+
+        for (int i = 0; i < produtosCadastrados.length; i++) {
+            if (produtosCadastrados[i] != null) {
+                System.out.println((i + 1) + " - " + produtosCadastrados[i]);
+            }
+        }
     }
     
     /**
@@ -161,8 +177,68 @@ public class App {
      * cria o objeto adequado de acordo com o tipo, inclui o produto no vetor.
      */
     static void cadastrarProduto() {
-    	
-    }  
+        if (produtosCadastrados != null && quantosProdutos >= MAX_NOVOS_PRODUTOS) {
+            System.out.println("Limite máximo de produtos atingido.");
+            return;
+        }
+
+        try {
+            System.out.print("Tipo do produto (1 - Não perecível / 2 - Perecível): ");
+            int tipo = Integer.parseInt(teclado.nextLine().trim());
+
+            System.out.print("Descrição: ");
+            String descricao = teclado.nextLine().trim();
+
+            System.out.print("Preço de custo: ");
+            double precoCusto = Double.parseDouble(teclado.nextLine().trim().replace(",", "."));
+
+            System.out.print("Margem de lucro: ");
+            double margemLucro = Double.parseDouble(teclado.nextLine().trim().replace(",", "."));
+
+            Produto novoProduto;
+
+            if (tipo == 1) {
+                novoProduto = new ProdutoNaoPerecivel(descricao, precoCusto, margemLucro);
+            } else if (tipo == 2) {
+                System.out.print("Data de validade (dd/MM/yyyy): ");
+                String validadeTexto = teclado.nextLine().trim();
+                LocalDate validade = LocalDate.parse(validadeTexto, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                novoProduto = new ProdutoPerecivel(descricao, precoCusto, margemLucro, validade);
+            } else {
+                System.out.println("Tipo inválido.");
+                return;
+            }
+
+            if (produtosCadastrados == null) {
+                produtosCadastrados = new Produto[MAX_NOVOS_PRODUTOS];
+            }
+
+            if (quantosProdutos >= produtosCadastrados.length) {
+                Produto[] novoVetor = new Produto[Math.min(produtosCadastrados.length + 1, MAX_NOVOS_PRODUTOS)];
+                for (int i = 0; i < produtosCadastrados.length; i++) {
+                    novoVetor[i] = produtosCadastrados[i];
+                }
+                produtosCadastrados = novoVetor;
+            }
+
+            for (int i = 0; i < produtosCadastrados.length; i++) {
+                if (produtosCadastrados[i] == null) {
+                    produtosCadastrados[i] = novoProduto;
+                    quantosProdutos++;
+                    System.out.println("Produto cadastrado com sucesso!");
+                    return;
+                }
+            }
+
+            System.out.println("Não foi possível cadastrar o produto.");
+        } catch (NumberFormatException e) {
+            System.out.println("Valor numérico inválido.");
+        } catch (DateTimeParseException e) {
+            System.out.println("Data inválida. Use o formato dd/MM/yyyy.");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
     
 	public static void main(String[] args) {
 		teclado = new Scanner(System.in, Charset.forName("UTF-8"));
