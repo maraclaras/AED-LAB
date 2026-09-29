@@ -1,0 +1,13 @@
+12
+10001;Rock in Rio;350.00
+10002;Festival de Verao;120.00
+10003;Cinema Especial;50.00
+10004;Teatro Central;80.00
+10005;Lollapalooza;250.00
+10006;Anime Festival;90.00
+10007;Show Internacional;180.00
+10008;Bienal do Livro;45.00
+10009;Festival Gastronomico;75.00
+10010;Orquestra Sinfonica;140.00
+10011;Stand Up Comedy;65.00
+10012;Musical Broadway;200.00
